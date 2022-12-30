@@ -7,7 +7,6 @@
 ```
 wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.sh && bash bbr.sh
 ```
-
 ### Linux TCP窗口优化
 
 ```
