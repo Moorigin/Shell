@@ -154,13 +154,13 @@ if uname -r|grep -q "^5."
 then
     echo "已经是 5.x 内核，不需要更新"
 else
-    wget -N "http://sh.nekoneko.cloud/bbr/bbr.sh" -O bbr.sh && bash bbr.sh
+    wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.sh && bash bbr.sh
 fi
   
 }
 
 Update_Shell(){
-  wget -N "https://alist.zdcy.org/OneDrive/Linux/tools.sh" -O tools.sh && chmod +x tools.sh && ./tools.sh
+  wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/tools.sh" -O tools.sh && chmod +x tools.sh && ./tools.sh
 }
 
 get_opsy() {
