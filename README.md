@@ -4,6 +4,7 @@
 
 ### bbr.sh
 - 描述：为 TCP BBR 自动安装最新内核
+- 教程：https://teddysun.com/489.html
 
 ```
 wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.sh && bash bbr.sh
@@ -16,6 +17,7 @@ wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.
 ```
 
 ### tools.sh
+- 描述：优化TCP窗口
 
 ```
 wget https://github.com/ZCXYHQ/Linux/releases/download/Linux/tools.sh -O tools.sh && bash tools.sh
@@ -34,6 +36,7 @@ chmod 755 /opt/wireguard.sh
 - 描述：自动测试I/O & 上传下载速度脚本
 - 教程：https ://teddysun.com/444.html
 
+> 命令1:
 ```
 wget -qO- bench.sh | bash
 ```
@@ -42,6 +45,17 @@ OR
 
 ```
 curl -Lso- bench.sh | bash
+```
+
+> 命令2:
+```
+wget -qO- 86.re/bench.sh | bash
+```
+
+OR
+
+```
+curl -so- 86.re/bench.sh | bash
 ```
 
 ### backup.sh
