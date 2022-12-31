@@ -7,7 +7,7 @@
 - 教程：https://teddysun.com/489.html
 
 ```
-wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.sh && bash bbr.sh
+wget --no-check-certificate -O bbr.sh https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh && bash bbr.sh
 ```
 
 OR
