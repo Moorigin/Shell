@@ -27,7 +27,7 @@ wget https://github.com/ZCXYHQ/Linux/releases/download/Linux/tools.sh -O tools.s
 
 ### wireguard.sh
 - 描述：这是一个用于配置和启动 WireGuard VPN 服务器的 shell 脚本。
-- 教程：https ://teddysun.com/554.html
+- 教程：https://teddysun.com/554.html
 
 ```
 wget --no-check-certificate -O /opt/wireguard.sh https://raw.githubusercontent.com/teddysun/across/master/wireguard.sh
@@ -36,7 +36,7 @@ chmod 755 /opt/wireguard.sh
 
 ### bench.sh
 - 描述：自动测试I/O & 上传下载速度脚本
-- 教程：https ://teddysun.com/444.html
+- 教程：https://teddysun.com/444.html
 
 ```
 wget -qO- bench.sh | bash
@@ -55,4 +55,4 @@ curl -Lso- bench.sh | bash
 - 自动将备份文件传输到 Google Drive（取决于rclone命令）（选项）
 - 自动传输备份文件到 FTP 服务器（取决于ftp命令）（选项）
 - 从 Google Drive 或 FTP 服务器自动删除远程文件（选项）
-- 教程：https ://teddysun.com/469.html
+- 教程：https://teddysun.com/469.html
