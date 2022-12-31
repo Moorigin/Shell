@@ -13,7 +13,7 @@ wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.
 OR
 
 ```
-wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.sh && bash bbr-teddysun.sh
+wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr-teddysun.sh" -O bbr-teddysun.sh && bash bbr-teddysun.sh
 ```
 
 ### tools.sh
