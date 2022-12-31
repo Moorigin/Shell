@@ -28,7 +28,7 @@ wget --no-check-certificate -O tools.sh https://github.com/ZCXYHQ/Linux/releases
 - 教程：https://teddysun.com/554.html
 
 ```
-wget --no-check-certificate -O wireguard.sh https://raw.githubusercontent.com/teddysun/across/master/wireguard.sh
+wget --no-check-certificate -O wireguard.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/wireguard.sh
 ```
 
 > 从代码编译安装 WireGuard
