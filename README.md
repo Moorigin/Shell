@@ -43,6 +43,12 @@ bash wireguard.sh -s
 bash wireguard.sh -r
 ```
 
+> 卸载
+
+```
+bash wireguard.sh -n
+```
+
 ### bench.sh
 - 描述：自动测试I/O & 上传下载速度脚本
 - 教程：https://teddysun.com/444.html
