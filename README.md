@@ -20,7 +20,7 @@ wget --no-check-certificate -O bbr-teddysun.sh https://raw.githubusercontent.com
 - 描述：优化TCP窗口
 
 ```
-wget https://github.com/ZCXYHQ/Linux/releases/download/Linux/tools.sh -O tools.sh && bash tools.sh
+wget --no-check-certificate -O tools.sh https://github.com/ZCXYHQ/Linux/releases/download/Linux/tools.sh && bash tools.sh
 ```
 
 ### wireguard.sh
