@@ -13,9 +13,7 @@ wget -N "https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh" -O bbr.
 OR
 
 ```
-wget --no-check-certificate -O /opt/bbr-teddysun.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr-teddysun.sh
-chmod 755 /opt/bbr-teddysun.sh
-/opt/bbr-teddysun.sh
+wget --no-check-certificate -O bbr-teddysun.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr-teddysun.sh && bash bbr-teddysun.sh
 ```
 
 ### tools.sh
