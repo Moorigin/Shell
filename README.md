@@ -38,7 +38,6 @@ chmod 755 /opt/wireguard.sh
 - 描述：自动测试I/O & 上传下载速度脚本
 - 教程：https ://teddysun.com/444.html
 
-> 命令1:
 ```
 wget -qO- bench.sh | bash
 ```
@@ -47,17 +46,6 @@ OR
 
 ```
 curl -Lso- bench.sh | bash
-```
-
-> 命令2:
-```
-wget -qO- 86.re/bench.sh | bash
-```
-
-OR
-
-```
-curl -so- 86.re/bench.sh | bash
 ```
 
 ### backup.sh
