@@ -19,6 +19,13 @@ wget --no-check-certificate -O bbr-teddysun.sh https://raw.githubusercontent.com
 - 检查bbr是否开启
 
 ```
+sysctl net.ipv4.tcp_available_congestion_control | grep bbr
+# 若已开启bbr，结果通常为以下两种：
+net.ipv4.tcp_available_congestion_control = bbr cubic reno
+net.ipv4.tcp_available_congestion_control = reno cubic bbr
+```
+
+```
 sysctl net.ipv4.tcp_congestion_control | grep bbr
 # 若已开启bbr，结果如下：
 net.ipv4.tcp_congestion_control = bbr
