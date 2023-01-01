@@ -20,8 +20,20 @@ wget --no-check-certificate -O bbr-teddysun.sh https://raw.githubusercontent.com
 
 ```
 sysctl net.ipv4.tcp_congestion_control | grep bbr
+# 若已开启bbr，结果如下：
+net.ipv4.tcp_congestion_control = bbr
+```
+
+```
 sysctl net.core.default_qdisc | grep fq
+# 若已开启bbr，结果如下：
+net.core.default_qdisc = fq
+```
+
+```
 lsmod | grep bbr
+# 若已开启bbr，结果可能如下。并不是所有的 VPS 都会有此返回值，若没有也属正常。
+tcp_bbr                20480  2
 ```
 
 - 删除多余内核
