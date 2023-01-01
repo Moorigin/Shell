@@ -4,7 +4,6 @@
 
 ## bbr.sh
 - 描述：为 TCP BBR 自动安装最新内核
-- 教程：https://teddysun.com/489.html
 
 ```
 wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr.sh && bash bbr.sh
