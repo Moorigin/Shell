@@ -85,14 +85,14 @@ curl -Lso- bench.sh | bash
 ### yabs.sh
 
 - 描述：使用fio、iPerform3和Geekbench评估Linux服务器性能。
-- -b 强制使用来自 repo 的预编译二进制文件，而不是本地包；
-- -f/d 禁用 fio (磁盘性能) 测试；
-- -i 禁用 iPerf (网络性能) 测试；
-- -g 禁用 Geekbench (系统性能) 测试
-- -h 打印帮助信息，包括用法、检测到的标志和本地包 (fio/iperf) 的状态；
-- -r 减少 iPerf 位置的数量 (Online.net/Clouvider LON+NYC) 以减少带宽的使用；
-- -4 停用 Geekbench 5 而转为运行 Geekbench 4 测试；
-- -9 在 Geekbench 5 及 Geekbench 4 测试；
+> -b 强制使用来自 repo 的预编译二进制文件，而不是本地包；
+> -f/d 禁用 fio (磁盘性能) 测试；
+> -i 禁用 iPerf (网络性能) 测试；
+> -g 禁用 Geekbench (系统性能) 测试
+> -h 打印帮助信息，包括用法、检测到的标志和本地包 (fio/iperf) 的状态；
+> -r 减少 iPerf 位置的数量 (Online.net/Clouvider LON+NYC) 以减少带宽的使用；
+> -4 停用 Geekbench 5 而转为运行 Geekbench 4 测试；
+> -9 在 Geekbench 5 及 Geekbench 4 测试；
 
 ```
 wget --no-check-certificate -O yabs.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/yabs.sh && bash yabs.sh
