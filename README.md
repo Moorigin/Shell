@@ -64,7 +64,7 @@ bash wireguard.sh -n
 - 教程：https://teddysun.com/444.html
 
 ```
-wget -qO- bench.sh | bash
+wget --no-check-certificate -O bench.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bench.sh && bash bench.sh
 ```
 
 OR
