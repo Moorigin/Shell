@@ -16,6 +16,16 @@ OR
 wget --no-check-certificate -O bbr-teddysun.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr-teddysun.sh && bash bbr-teddysun.sh
 ```
 
+> 删除多余内核
+
+```
+dpkg --list | grep linux-image
+```
+
+```
+apt purge linux-image-***
+```
+
 ### tools.sh
 - 描述：优化TCP窗口
 
