@@ -7,7 +7,7 @@
 - 教程：https://teddysun.com/489.html
 
 ```
-wget --no-check-certificate -O bbr.sh https://github.com/ZCXYHQ/Linux/releases/download/Linux/bbr.sh && bash bbr.sh
+wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr.sh && bash bbr.sh
 ```
 
 OR
@@ -30,7 +30,7 @@ apt purge linux-image-***
 - 描述：优化TCP窗口
 
 ```
-wget --no-check-certificate -O tools.sh https://github.com/ZCXYHQ/Linux/releases/download/Linux/tools.sh && bash tools.sh
+wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && bash tools.sh
 ```
 
 ### wireguard.sh
