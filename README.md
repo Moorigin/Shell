@@ -73,7 +73,7 @@ OR
 curl -Lso- bench.sh | bash
 ```
 
-### bench.sh
+### yabs.sh
 
 - 描述：使用fio、iPerform3和Geekbench评估Linux服务器性能。
 - -b 强制使用来自 repo 的预编译二进制文件，而不是本地包；
