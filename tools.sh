@@ -34,7 +34,6 @@ sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
 sed -i '/net.ipv4.udp_rmem_min/d' /etc/sysctl.conf
 sed -i '/net.ipv4.udp_wmem_min/d' /etc/sysctl.conf
 sed -i '/fs.file-max/d' /etc/sysctl.conf
-sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
 cat >> /etc/sysctl.conf << EOF
@@ -55,7 +54,6 @@ net.ipv4.tcp_wmem=4096 16384 16777216
 net.ipv4.udp_rmem_min=8192
 net.ipv4.udp_wmem_min=8192
 fs.file-max=1000000
-net.ipv4.ip_forward = 1
 net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 EOF
