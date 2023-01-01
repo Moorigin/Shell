@@ -16,8 +16,8 @@ YABS_VERSION="v2022-12-04"
 
 echo -e '# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #'
 echo -e '#              Yet-Another-Bench-Script              #'
-echo -e '#                     '$YABS_VERSION'                    #'
-echo -e '# https://github.com/masonr/yet-another-bench-script #'
+echo -e '#                   '$YABS_VERSION'                  #'
+echo -e '#          https://github.com/ZCXYHQ/Linux           #'
 echo -e '# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #'
 
 echo -e
