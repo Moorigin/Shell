@@ -16,7 +16,15 @@ OR
 wget --no-check-certificate -O bbr-teddysun.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr-teddysun.sh && bash bbr-teddysun.sh
 ```
 
-> 删除多余内核
+- 检查bbr是否开启
+
+```
+sysctl net.ipv4.tcp_congestion_control | grep bbr
+sysctl net.core.default_qdisc | grep fq
+lsmod | grep bbr
+```
+
+- 删除多余内核
 
 ```
 dpkg --list | grep linux-image
