@@ -59,28 +59,6 @@ apt purge linux-image-***
 wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && bash tools.sh
 ```
 
-## mtr_trace.sh
-
-- 描述：检测VPS回程国内三网路由
-- 支持的线路为：电信CN2 GT，电信CN2 GIA，联通169，电信163，联通9929，联通4837，移动CMI
-
-```
-wget --no-check-certificate -O mtr_trace.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/mtr_trace.sh && bash mtr_trace.sh
-```
-
-## bench.sh
-- 描述：自动测试I/O & 上传下载速度脚本
-
-```
-wget --no-check-certificate -O bench.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bench.sh && bash bench.sh
-```
-
-OR
-
-```
-curl -Lso- bench.sh | bash
-```
-
 ## yabs.sh
 
 - 描述：使用fio、iPerform3和Geekbench评估Linux服务器性能。
@@ -95,32 +73,6 @@ curl -Lso- bench.sh | bash
 
 ```
 wget --no-check-certificate -O yabs.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/yabs.sh && bash yabs.sh
-```
-
-## wireguard.sh
-- 描述：这是一个用于配置和启动 WireGuard VPN 服务器的 shell 脚本。
-- 教程：https://teddysun.com/554.html
-
-```
-wget --no-check-certificate -O wireguard.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/wireguard.sh
-```
-
-- 从代码编译安装 WireGuard
-
-```
-bash wireguard.sh -s
-```
-
-- 从 repository 直接安装 WireGuard
-
-```
-bash wireguard.sh -r
-```
-
-- 卸载
-
-```
-bash wireguard.sh -n
 ```
 
 ## backup.sh
