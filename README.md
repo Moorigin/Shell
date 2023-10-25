@@ -59,27 +59,3 @@ apt purge linux-image-***
 wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && bash tools.sh
 ```
 
-## yabs.sh
-
-- 描述：使用fio、iPerform3和Geekbench评估Linux服务器性能。
-- -b 强制使用来自 repo 的预编译二进制文件，而不是本地包；
-- -f/d 禁用 fio (磁盘性能) 测试；
-- -i 禁用 iPerf (网络性能) 测试；
-- -g 禁用 Geekbench (系统性能) 测试
-- -h 打印帮助信息，包括用法、检测到的标志和本地包 (fio/iperf) 的状态；
-- -r 减少 iPerf 位置的数量 (Online.net/Clouvider LON+NYC) 以减少带宽的使用；
-- -4 停用 Geekbench 5 而转为运行 Geekbench 4 测试；
-- -9 在 Geekbench 5 及 Geekbench 4 测试；
-
-```
-wget --no-check-certificate -O yabs.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/yabs.sh && bash yabs.sh
-```
-
-## backup.sh
-- 运行前必须修改配置
-- 备份 MySQL 或 MariaDB 数据库、文件和目录
-- 备份文件使用 AES256-cbc 和 SHA1 消息摘要加密（取决于openssl命令）（选项）
-- 自动将备份文件传输到 Google Drive（取决于rclone命令）（选项）
-- 自动传输备份文件到 FTP 服务器（取决于ftp命令）（选项）
-- 从 Google Drive 或 FTP 服务器自动删除远程文件（选项）
-- 教程：https://teddysun.com/469.html
