@@ -152,9 +152,9 @@ systemctl daemon-reload
 
 bbr(){
 
-if uname -r|grep -q "^5."
+if uname -r|grep -q "^6."
 then
-    echo "已经是 5.x 内核，不需要更新"
+    echo "已经是 6.x 内核，不需要更新"
 else
     wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr.sh && bash bbr.sh
 fi
