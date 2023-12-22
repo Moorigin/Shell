@@ -89,17 +89,6 @@ sed -i "s/net.ipv4.icmp_echo_ignore_broadcasts=1/net.ipv4.icmp_echo_ignore_broad
 sysctl -p && sysctl --system
 }
 
-bbr(){
-
-if uname -r|grep -q "^6."
-then
-    echo "已经是 6.x 内核，不需要更新"
-else
-    wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/bbr.sh && bash bbr.sh
-fi
-  
-}
-
 Update_Shell(){
   wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && chmod +x tools.sh && ./tools.sh
 }
@@ -187,7 +176,6 @@ get_system_info() {
 menu() {
   echo -e "\
 ${Green_font_prefix}0.${Font_color_suffix} 升级脚本
-${Green_font_prefix}1.${Font_color_suffix} 安装BBR原版内核(已经是6.x的不需要)
 ${Green_font_prefix}2.${Font_color_suffix} TCP窗口调优
 ${Green_font_prefix}3.${Font_color_suffix} 开启内核转发
 ${Green_font_prefix}4.${Font_color_suffix} 屏蔽ICMP ${Green_font_prefix}5.${Font_color_suffix} 开放ICMP
@@ -202,23 +190,20 @@ echo -e "当前系统信息: ${Font_color_suffix}$opsy ${Green_font_prefix}$virt
     Update_Shell
     ;;
   1)
-    bbr
-    ;;
-  2)
     tcp_tune
     ;;
-  3)
+  2)
     enable_forwarding
     ;;
-  4)
+  3)
     banping
     ;;
-  5)
+  4)
     unbanping
     ;;
   *)
   clear
-    echo -e "${Error}:请输入正确数字 [0-99]"
+    echo -e "${Error}:请输入正确数字 [0-4]"
     sleep 5s
     start_menu
     ;;
