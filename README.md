@@ -31,6 +31,6 @@ apt purge linux-image-***
 - 描述：优化TCP窗口
 
 ```
-wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && bash tools.sh
+wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && chmod +x tools.sh && ./tools.sh
 ```
 
