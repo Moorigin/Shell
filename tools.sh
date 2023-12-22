@@ -176,9 +176,10 @@ get_system_info() {
 menu() {
   echo -e "\
 ${Green_font_prefix}0.${Font_color_suffix} 升级脚本
-${Green_font_prefix}2.${Font_color_suffix} TCP窗口调优
-${Green_font_prefix}3.${Font_color_suffix} 开启内核转发
-${Green_font_prefix}4.${Font_color_suffix} 屏蔽ICMP ${Green_font_prefix}5.${Font_color_suffix} 开放ICMP
+${Green_font_prefix}1.${Font_color_suffix} TCP窗口调优
+${Green_font_prefix}2.${Font_color_suffix} 开启内核转发
+${Green_font_prefix}3.${Font_color_suffix} 屏蔽ICMP
+${Green_font_prefix}4.${Font_color_suffix} 开放ICMP
 "
 get_system_info
 echo -e "当前系统信息: ${Font_color_suffix}$opsy ${Green_font_prefix}$virtual${Font_color_suffix} $arch ${Green_font_prefix}$kern${Font_color_suffix}
