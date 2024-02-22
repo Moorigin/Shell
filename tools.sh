@@ -90,7 +90,7 @@ sysctl -p && sysctl --system
 }
 
 Update_Shell(){
-  wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/ZCXYHQ/Linux/main/tools.sh && chmod +x tools.sh && ./tools.sh
+  wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Linux/main/tools.sh && chmod +x tools.sh && ./tools.sh
 }
 
 get_opsy() {
