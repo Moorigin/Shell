@@ -34,3 +34,9 @@ apt purge linux-image-***
 wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Linux/main/tools.sh && chmod +x tools.sh && ./tools.sh
 ```
 
+## swap.sh
+- 描述：添加SWAP分区
+
+```
+wget --no-check-certificate -O swap.sh https://raw.githubusercontent.com/Moorigin/Linux/main/swap.sh && chmod +x swap.sh && ./swap.sh
+```
