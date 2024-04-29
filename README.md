@@ -6,7 +6,7 @@
 - 描述：为 TCP BBR 自动安装最新内核
 
 ```
-wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/Moorigin/Linux/main/bbr.sh && bash bbr.sh
+wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/Moorigin/Shell/main/bbr.sh && bash bbr.sh
 ```
 
 - 检查bbr是否开启
@@ -31,12 +31,12 @@ apt purge linux-image-***
 - 描述：优化TCP窗口
 
 ```
-wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Linux/main/tools.sh && chmod +x tools.sh && ./tools.sh
+wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Shell/main/tools.sh && chmod +x tools.sh && ./tools.sh
 ```
 
 ## swap.sh
 - 描述：添加SWAP分区
 
 ```
-wget --no-check-certificate -O swap.sh https://raw.githubusercontent.com/Moorigin/Linux/main/swap.sh && chmod +x swap.sh && ./swap.sh
+wget --no-check-certificate -O swap.sh https://raw.githubusercontent.com/Moorigin/Shell/main/swap.sh && chmod +x swap.sh && ./swap.sh
 ```
