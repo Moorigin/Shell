@@ -187,17 +187,6 @@ _check_swap() {
     fi
 }
 
-##### 判断IP类型 #####
-# 对 IPv6 单栈的服务器来说进行测试没有意义，
-# 因为要将结果上传到 browser.geekbench.com 后才能拿到最后的跑分，
-# 但 browser.geekbench.com 仅有 IPv4、不支持 IPv6，测了也是白测。
-_check_ip() {
-    if ! curl -s 'https://browser.geekbench.com' --connect-timeout 5 >/dev/null; then
-        echo -e "对 IPv6 单栈的服务器来说进行测试没有意义，\n因为要将结果上传到 browser.geekbench.com 后才能拿到最后的跑分，\n但 browser.geekbench.com 仅有 IPv4、不支持 IPv6，测了也是白测。"
-        exit 1
-    fi
-}
-
 ##### 判断IP所在地，选择相应下载源 #####
 _check_region() {
     local loc
@@ -278,7 +267,7 @@ _output_summary() {
     echo -e "净测试时长：$run_time_minutes分$run_time_seconds秒\n"
 
     # 参数
-    _yellow "Geekbench 5 测试结果\n"
+    _yellow "Geekbench 6 测试结果\n"
     awk '/System Information/,/Size/{sub("System Information", "系统信息"); sub("Processor Information", "处理器信息"); sub("Memory Information", "内存信息"); print}' $dir/result.txt
 
     # 分数
@@ -307,7 +296,6 @@ _main() {
     trap '_rm_dir' EXIT
     clear
     _banner
-    _check_ip
     _check_package wget wget
     _check_package tar tar
     # _check_package fallocate util-linux
