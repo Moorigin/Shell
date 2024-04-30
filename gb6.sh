@@ -84,19 +84,19 @@ _check_architecture() {
         geekbench_tar_name=Geekbench-$geekbench_version-Linux.tar.gz
         geekbench_tar_folder=Geekbench-$geekbench_version-Linux
         geekbench_official_sha256=$geekbench_x86_64_official_sha256
-        geekbench_software_name=geekbench5
+        geekbench_software_name=geekbench6
     elif [ "$(uname -m)" == "aarch64" ]; then
         _blue "本机架构：aarch64"
         geekbench_tar_name=Geekbench-$geekbench_version-LinuxARMPreview.tar.gz
         geekbench_tar_folder=Geekbench-$geekbench_version-LinuxARMPreview
         geekbench_official_sha256=$geekbench_aarch64_official_sha256
-        geekbench_software_name=geekbench5
+        geekbench_software_name=geekbench6
     elif [ "$(uname -m)" == "riscv64" ]; then
         _blue "本机架构：riscv64"
         geekbench_tar_name=Geekbench-$geekbench_version-LinuxRISCVPreview.tar.gz
         geekbench_tar_folder=Geekbench-$geekbench_version-LinuxRISCVPreview
         geekbench_official_sha256=$geekbench_riscv64_official_sha256
-        geekbench_software_name=geekbench5
+        geekbench_software_name=geekbench6
     else
         echo "本脚本目前只支持x86_64、aarch64、riscv64架构"
         exit
