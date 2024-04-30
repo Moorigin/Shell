@@ -38,7 +38,7 @@ _blue() {
 _banner() {
     echo -e "# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #"
     echo -e "#                GeekBench6 Test               #"
-    echo -e "#                $script_version               #"
+    echo -e "#                  $script_version                 #"
     echo -e "#       https://github.com/Moorigin/Shell      #"
     echo -e "# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #"
     echo
