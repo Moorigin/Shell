@@ -27,6 +27,24 @@ dpkg --list | grep linux-image
 apt purge linux-image-***
 ```
 
+## gb6-test.sh
+- 描述：cpu基准测试
+
+```
+wget --no-check-certificate -O gb6-test.sh https://raw.githubusercontent.com/Moorigin/Shell/main/gb6-test.sh && chmod +x gb6-test.sh && ./gb6-test.sh
+```
+
+## iptables.sh
+- 描述：IPTables端口转发管理工具
+- 需要先安装iptables-persistent工具
+```
+sudo apt install iptables-persistent
+```
+
+```
+wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Shell/main/iptables.sh && chmod +x iptables.sh && ./iptables.sh
+```
+
 ## tools.sh
 - 描述：优化TCP窗口
 
@@ -39,11 +57,4 @@ wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorig
 
 ```
 wget --no-check-certificate -O swap.sh https://raw.githubusercontent.com/Moorigin/Shell/main/swap.sh && chmod +x swap.sh && ./swap.sh
-```
-
-## gb6-test.sh
-- 描述：cpu基准测试
-
-```
-wget --no-check-certificate -O gb6-test.sh https://raw.githubusercontent.com/Moorigin/Shell/main/gb6-test.sh && chmod +x gb6-test.sh && ./gb6-test.sh
 ```
