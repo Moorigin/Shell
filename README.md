@@ -2,29 +2,11 @@
 
 > 免责声明：该项目仅供个人学习、交流，请勿用于非法用途，请勿用于生产环境  
 
-## bbr.sh
-- 描述：为 TCP BBR 自动安装最新内核
+## tcp-optimize.sh
+- 描述：Linux网络优化
 
 ```
-wget --no-check-certificate -O bbr.sh https://raw.githubusercontent.com/Moorigin/Shell/main/bbr.sh && bash bbr.sh
-```
-
-- 检查bbr是否开启
-
-```
-sysctl net.core.default_qdisc | grep fq
-# 若已开启bbr，结果如下：
-net.core.default_qdisc = fq
-```
-
-- 删除多余内核
-
-```
-dpkg --list | grep linux-image
-```
-
-```
-apt purge linux-image-***
+wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com/Moorigin/Shell/main/tcp-optimize.sh && bash tcp-optimize.sh
 ```
 
 ## gb6-test.sh
