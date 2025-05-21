@@ -10,7 +10,7 @@ wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com
 ```
 
 ## gb6-test.sh
-- 描述：cpu基准测试
+- 描述：CPU基准测试
 
 ```
 wget --no-check-certificate -O gb6-test.sh https://raw.githubusercontent.com/Moorigin/Shell/main/gb6-test.sh && chmod +x gb6-test.sh && ./gb6-test.sh
