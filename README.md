@@ -16,6 +16,13 @@ wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com
 wget --no-check-certificate -O gb6-test.sh https://raw.githubusercontent.com/Moorigin/Shell/main/gb6-test.sh && chmod +x gb6-test.sh && ./gb6-test.sh
 ```
 
+## relay-iptables.sh
+- 描述：IPTables端口转发管理工具
+
+```
+wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-iptables.sh && chmod +x iptables.sh && ./relay-iptables.sh
+```
+
 ## iptables.sh
 - 描述：IPTables端口转发管理工具
 - 需要先安装iptables-persistent工具
@@ -24,7 +31,7 @@ sudo apt install iptables-persistent
 ```
 
 ```
-wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Shell/main/iptables.sh && chmod +x iptables.sh && ./iptables.sh
+wget --no-check-certificate -O iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/iptables.sh && chmod +x iptables.sh && ./iptables.sh
 ```
 
 ## tools.sh
