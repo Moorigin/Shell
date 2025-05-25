@@ -9,13 +9,6 @@
 wget --no-check-certificate -O gb6-test.sh https://raw.githubusercontent.com/Moorigin/Shell/main/gb6-test.sh && chmod +x gb6-test.sh && ./gb6-test.sh
 ```
 
-## tcp-optimize.sh
-- 描述：Linux网络优化
-
-```
-wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com/Moorigin/Shell/main/tcp-optimize.sh && bash tcp-optimize.sh
-```
-
 ## relay-iptables.sh
 - 描述：IPTables端口转发管理工具
 
@@ -30,9 +23,9 @@ wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.c
 wget --no-check-certificate -O relay-socat.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-socat.sh && chmod +x relay-socat.sh && ./relay-socat.sh
 ```
 
-## swap.sh
-- 描述：添加SWAP分区
+## tcp-optimize.sh
+- 描述：Linux网络优化
 
 ```
-wget --no-check-certificate -O swap.sh https://raw.githubusercontent.com/Moorigin/Shell/main/swap.sh && chmod +x swap.sh && ./swap.sh
+wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com/Moorigin/Shell/main/tcp-optimize.sh && bash tcp-optimize.sh
 ```
