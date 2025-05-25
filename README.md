@@ -20,25 +20,14 @@ wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com
 - 描述：IPTables端口转发管理工具
 
 ```
-wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-iptables.sh && chmod +x iptables.sh && ./relay-iptables.sh
+wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-iptables.sh && chmod +x relay-iptables.sh && ./relay-iptables.sh
 ```
 
-## iptables.sh
-- 描述：IPTables端口转发管理工具
-- 需要先安装iptables-persistent工具
-```
-sudo apt install iptables-persistent
-```
+## relay-iptables.sh
+- 描述：Socat端口转发管理工具
 
 ```
-wget --no-check-certificate -O iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/iptables.sh && chmod +x iptables.sh && ./iptables.sh
-```
-
-## tools.sh
-- 描述：优化TCP窗口
-
-```
-wget --no-check-certificate -O tools.sh https://raw.githubusercontent.com/Moorigin/Shell/main/tools.sh && chmod +x tools.sh && ./tools.sh
+wget --no-check-certificate -O relay-socat.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-socat.sh && chmod +x relay-socat.sh && ./relay-socat.sh
 ```
 
 ## swap.sh
