@@ -45,10 +45,10 @@ show_menu() {
         echo -e "${YELLOW}请选择操作：${NC}"
         echo "1. 安装必要软件"
         echo "2. 添加转发规则"
-        echo "3. 设置开机自启"
+        echo "3. 删除转发规则"
         echo "4. 查看转发规则"
-        echo "5. 删除转发规则"
-        echo "6. 启动/重启所有转发"
+        echo "5. 设置开机自启"
+        echo "6. 重启所有转发"
         echo "7. 停止所有转发"
         echo "8. 系统状态检查"
         echo "0. 退出"
@@ -67,7 +67,7 @@ show_menu() {
                 read -p "按回车继续..."
                 ;;
             3)
-                setup_autostart
+                delete_relay_rule
                 read -p "按回车继续..."
                 ;;
             4)
@@ -75,7 +75,7 @@ show_menu() {
                 read -p "按回车继续..."
                 ;;
             5)
-                delete_relay_rule
+                setup_autostart
                 read -p "按回车继续..."
                 ;;
             6)
@@ -478,6 +478,78 @@ add_relay_rule() {
     echo -e "${GREEN}转发规则已添加并启动${NC}"
 }
 
+delete_relay_rule() {
+    if [ ! -f "$RELAY_CONFIG" ] || [ ! -s "$RELAY_CONFIG" ]; then
+        echo -e "${YELLOW}没有配置任何转发规则${NC}"
+        return
+    fi
+    
+    echo -e "${YELLOW}请选择要删除的规则编号：${NC}"
+    
+    # 显示所有规则
+    list_relay_rules
+    
+    # 计算规则数量
+    local rule_count=$(grep -v -e '^$' -e '^#' "$RELAY_CONFIG" | wc -l)
+    
+    read -p "请输入要删除的规则编号 (1-$rule_count): " rule_num
+    
+    if ! [[ "$rule_num" =~ ^[0-9]+$ ]] || [ "$rule_num" -lt 1 ] || [ "$rule_num" -gt "$rule_count" ]; then
+        echo -e "${RED}无效的规则编号${NC}"
+        return 1
+    fi
+    
+    # 获取要删除的规则信息
+    local rule=$(sed -n "${rule_num}p" <(grep -v -e '^$' -e '^#' "$RELAY_CONFIG"))
+    local local_port=$(echo "$rule" | awk '{print $1}')
+    local protocol=$(echo "$rule" | awk '{print $4}')
+    
+    # 默认protocol为tcp如果未指定
+    [ -z "$protocol" ] && protocol="tcp"
+    
+    # 停止该端口的转发
+    "$FULL_SCRIPT_PATH" stop_port "$local_port" "$protocol"
+    
+    # 从配置文件删除
+    local temp_file=$(mktemp)
+    grep -v -e '^$' -e '^#' "$RELAY_CONFIG" | awk -v line="$rule_num" 'NR != line' > "$temp_file"
+    cat "$temp_file" > "$RELAY_CONFIG"
+    rm -f "$temp_file"
+    
+    echo -e "${GREEN}规则已成功删除${NC}"
+}
+
+list_relay_rules() {
+    echo -e "${CYAN}当前转发规则:${NC}"
+    
+    if [ ! -f "$RELAY_CONFIG" ] || [ ! -s "$RELAY_CONFIG" ]; then
+        echo -e "${YELLOW}没有配置任何转发规则${NC}"
+        return
+    fi
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    printf "${CYAN}%-6s %-20s %-10s %-10s %-10s${NC}\n" "序号" "本地端口" "目标IP" "目标端口" "协议"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    local line_num=1
+    while IFS=' ' read -r local_port target_ip target_port protocol; do
+        # 跳过空行和注释
+        [[ -z "$local_port" || "$local_port" == \#* ]] && continue
+        
+        # 如果没有指定协议，默认为tcp
+        [ -z "$protocol" ] && protocol="tcp"
+        
+        printf "%-6s %-20s %-10s %-10s %-10s\n" "$line_num" "$local_port" "$target_ip" "$target_port" "$protocol"
+        ((line_num++))
+    done < "$RELAY_CONFIG"
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    # 检查转发状态
+    echo -e "\n${CYAN}转发状态:${NC}"
+    "$FULL_SCRIPT_PATH" status
+}
+
 setup_autostart() {
     echo -e "${YELLOW}设置开机自启动...${NC}"
     
@@ -519,78 +591,6 @@ EOF
     fi
     
     echo -e "${GREEN}开机自启动设置完成${NC}"
-}
-
-list_relay_rules() {
-    echo -e "${CYAN}当前转发规则:${NC}"
-    
-    if [ ! -f "$RELAY_CONFIG" ] || [ ! -s "$RELAY_CONFIG" ]; then
-        echo -e "${YELLOW}没有配置任何转发规则${NC}"
-        return
-    fi
-    
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    printf "${CYAN}%-6s %-20s %-10s %-10s %-10s${NC}\n" "序号" "本地端口" "目标IP" "目标端口" "协议"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    
-    local line_num=1
-    while IFS=' ' read -r local_port target_ip target_port protocol; do
-        # 跳过空行和注释
-        [[ -z "$local_port" || "$local_port" == \#* ]] && continue
-        
-        # 如果没有指定协议，默认为tcp
-        [ -z "$protocol" ] && protocol="tcp"
-        
-        printf "%-6s %-20s %-10s %-10s %-10s\n" "$line_num" "$local_port" "$target_ip" "$target_port" "$protocol"
-        ((line_num++))
-    done < "$RELAY_CONFIG"
-    
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    
-    # 检查转发状态
-    echo -e "\n${CYAN}转发状态:${NC}"
-    "$FULL_SCRIPT_PATH" status
-}
-
-delete_relay_rule() {
-    if [ ! -f "$RELAY_CONFIG" ] || [ ! -s "$RELAY_CONFIG" ]; then
-        echo -e "${YELLOW}没有配置任何转发规则${NC}"
-        return
-    fi
-    
-    echo -e "${YELLOW}请选择要删除的规则编号：${NC}"
-    
-    # 显示所有规则
-    list_relay_rules
-    
-    # 计算规则数量
-    local rule_count=$(grep -v -e '^$' -e '^#' "$RELAY_CONFIG" | wc -l)
-    
-    read -p "请输入要删除的规则编号 (1-$rule_count): " rule_num
-    
-    if ! [[ "$rule_num" =~ ^[0-9]+$ ]] || [ "$rule_num" -lt 1 ] || [ "$rule_num" -gt "$rule_count" ]; then
-        echo -e "${RED}无效的规则编号${NC}"
-        return 1
-    fi
-    
-    # 获取要删除的规则信息
-    local rule=$(sed -n "${rule_num}p" <(grep -v -e '^$' -e '^#' "$RELAY_CONFIG"))
-    local local_port=$(echo "$rule" | awk '{print $1}')
-    local protocol=$(echo "$rule" | awk '{print $4}')
-    
-    # 默认protocol为tcp如果未指定
-    [ -z "$protocol" ] && protocol="tcp"
-    
-    # 停止该端口的转发
-    "$FULL_SCRIPT_PATH" stop_port "$local_port" "$protocol"
-    
-    # 从配置文件删除
-    local temp_file=$(mktemp)
-    grep -v -e '^$' -e '^#' "$RELAY_CONFIG" | awk -v line="$rule_num" 'NR != line' > "$temp_file"
-    cat "$temp_file" > "$RELAY_CONFIG"
-    rm -f "$temp_file"
-    
-    echo -e "${GREEN}规则已成功删除${NC}"
 }
 
 restart_all_relay() {
