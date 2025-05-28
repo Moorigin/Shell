@@ -140,6 +140,125 @@ create_management_script() {
 RELAY_CONFIG="/etc/socat-relay/relay.conf"
 PIDFILE_DIR="/var/run/socat-relay"
 
+# 检测IP类型 (IPv4或IPv6)
+detect_ip_type() {
+    local ip=$1
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        echo "IPv4"
+    elif [[ $ip =~ : ]]; then
+        echo "IPv6"
+    else
+        # 尝试解析主机名
+        local resolved_ip=$(getent ahosts "$ip" | head -n1 | awk '{print $1}')
+        if [[ -z "$resolved_ip" ]]; then
+            echo "unknown"
+            return
+        fi
+        
+        if [[ $resolved_ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            echo "IPv4"
+        elif [[ $resolved_ip =~ : ]]; then
+            echo "IPv6"
+        else
+            echo "unknown"
+        fi
+    fi
+}
+
+# 检查IP是否为私有IP
+is_private_ip() {
+    local ip=$1
+    
+    # 检查IPv4私有地址
+    if [[ "$ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        # 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, 127.0.0.0/8
+        if [[ "$ip" =~ ^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|169\.254\.|127\.) ]]; then
+            return 0
+        else
+            return 1
+        fi
+    # 检查IPv6私有地址或本地链接地址
+    elif [[ "$ip" =~ : ]]; then
+        # fc00::/7 (ULA), fe80::/10 (link-local), ::1 (loopback)
+        if [[ "$ip" =~ ^(fc|fd|fe80:|::1$) ]]; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+    
+    # 默认不是私有地址
+    return 1
+}
+
+# 检查系统支持的IP类型
+check_system_ip_support() {
+    local ipv4_supported=0
+    local ipv6_supported=0
+    local ipv4_public=0
+    local ipv6_public=0
+    
+    # 检查IPv4支持
+    if ip -4 addr show | grep -q "inet "; then
+        ipv4_supported=1
+        
+        # 检查是否有公网IPv4
+        local found_public=0
+        while read -r ip; do
+            if ! is_private_ip "$ip"; then
+                found_public=1
+                break
+            fi
+        done < <(ip -4 addr show | grep -v "127.0.0.1" | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+        
+        ipv4_public=$found_public
+    fi
+    
+    # 检查IPv6支持
+    if [ -f /proc/net/if_inet6 ] && ip -6 addr show | grep -q "inet6"; then
+        ipv6_supported=1
+        
+        # 检查是否有公网IPv6
+        local found_public=0
+        while read -r ip; do
+            if ! is_private_ip "$ip"; then
+                found_public=1
+                break
+            fi
+        done < <(ip -6 addr show | grep -v "::1" | grep "inet6" | awk '{print $2}' | cut -d/ -f1)
+        
+        ipv6_public=$found_public
+    fi
+    
+    # 返回支持状态, 格式: ipv4_supported,ipv6_supported,ipv4_public,ipv6_public
+    echo "${ipv4_supported},${ipv6_supported},${ipv4_public},${ipv6_public}"
+}
+
+# 获取并显示系统IP信息
+show_system_ips() {
+    echo "系统IP地址信息:"
+    
+    # 检查IPv4地址
+    echo "IPv4地址:"
+    while read -r ip; do
+        local private="公网地址"
+        if is_private_ip "$ip"; then
+            private="私有地址"
+        fi
+        echo " - $ip ($private)"
+    done < <(ip -4 addr show | grep -v "127.0.0.1" | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    
+    # 检查IPv6地址
+    echo "IPv6地址:"
+    while read -r ip; do
+        local private="公网地址"
+        if is_private_ip "$ip"; then
+            private="私有地址"
+        fi
+        echo " - $ip ($private)"
+    done < <(ip -6 addr show | grep -v "::1" | grep "inet6" | awk '{print $2}' | cut -d/ -f1)
+}
+
 start_relay() {
     local local_port=$1
     local target_ip=$2
@@ -149,45 +268,141 @@ start_relay() {
     # 确保PID文件目录存在
     mkdir -p "$PIDFILE_DIR"
     
+    # 检测系统IP支持
+    local ip_support=$(check_system_ip_support)
+    local ipv4_supported=$(echo "$ip_support" | cut -d',' -f1)
+    local ipv6_supported=$(echo "$ip_support" | cut -d',' -f2)
+    local ipv4_public=$(echo "$ip_support" | cut -d',' -f3)
+    local ipv6_public=$(echo "$ip_support" | cut -d',' -f4)
+    
+    # 检测目标IP类型
+    local ip_type=$(detect_ip_type "$target_ip")
+    if [[ "$ip_type" == "unknown" ]]; then
+        echo "无法检测目标IP类型: $target_ip"
+        return 1
+    fi
+    
+    # 根据IP类型设置目标协议 (TCP4/TCP6 或 UDP4/UDP6)
+    local tcp_dst_type="TCP4"
+    local udp_dst_type="UDP4"
+    
+    if [[ "$ip_type" == "IPv6" ]]; then
+        tcp_dst_type="TCP6"
+        udp_dst_type="UDP6"
+    fi
+    
+    # 输出当前转发的地址信息
+    local src_info=""
+    if [ "$ipv4_public" -eq 1 ] && [ "$ipv6_public" -eq 1 ]; then
+        src_info="IPv4+IPv6公网双栈"
+    elif [ "$ipv4_public" -eq 1 ]; then
+        src_info="仅IPv4公网"
+    elif [ "$ipv6_public" -eq 1 ]; then
+        src_info="仅IPv6公网"
+    elif [ "$ipv4_supported" -eq 1 ] && [ "$ipv6_supported" -eq 1 ]; then
+        src_info="IPv4+IPv6私有双栈"
+    elif [ "$ipv4_supported" -eq 1 ]; then
+        src_info="仅IPv4私有"
+    elif [ "$ipv6_supported" -eq 1 ]; then
+        src_info="仅IPv6私有"
+    else
+        echo "错误: 系统没有可用的IP地址"
+        return 1
+    fi
+    
+    echo "系统网络类型: $src_info, 目标地址类型: $ip_type"
+    
     # 根据协议启动相应的转发
     if [[ "$protocol" == "tcp" || "$protocol" == "both" ]]; then
-        # 创建唯一的PID文件名
-        local tcp_pidfile="$PIDFILE_DIR/tcp_${local_port}.pid"
-        
-        # 如果已存在进程，停止它
-        if [ -f "$tcp_pidfile" ]; then
-            local old_pid=$(cat "$tcp_pidfile")
-            if kill -0 "$old_pid" 2>/dev/null; then
-                kill "$old_pid"
-                sleep 1
+        # 启动TCP IPv4监听转发 (如果系统有公网IPv4，或只有私有IPv4但没有任何IPv6)
+        if [ "$ipv4_public" -eq 1 ] || ([ "$ipv4_supported" -eq 1 ] && [ "$ipv6_supported" -eq 0 ]); then
+            local tcp4_pidfile="$PIDFILE_DIR/tcp4_${local_port}.pid"
+            
+            # 如果已存在进程，停止它
+            if [ -f "$tcp4_pidfile" ]; then
+                local old_pid=$(cat "$tcp4_pidfile")
+                if kill -0 "$old_pid" 2>/dev/null; then
+                    kill "$old_pid"
+                    sleep 1
+                fi
+                rm -f "$tcp4_pidfile"
             fi
-            rm -f "$tcp_pidfile"
+            
+            # 启动TCP IPv4转发并保存PID
+            socat TCP4-LISTEN:${local_port},fork,reuseaddr ${tcp_dst_type}:${target_ip}:${target_port} &
+            echo $! > "$tcp4_pidfile"
+            echo "启动TCP IPv4转发: 0.0.0.0:$local_port -> $target_ip:$target_port (PID: $(cat $tcp4_pidfile))"
+        else
+            echo "跳过TCP IPv4转发: 系统没有公网IPv4地址，且有其他类型的连接可用"
         fi
         
-        # 启动TCP转发并保存PID
-        socat TCP6-LISTEN:${local_port},fork,reuseaddr TCP4:${target_ip}:${target_port} &
-        echo $! > "$tcp_pidfile"
-        echo "启动TCP转发: [::]:$local_port -> $target_ip:$target_port (PID: $(cat $tcp_pidfile))"
+        # 启动TCP IPv6监听转发 (如果系统有公网IPv6，或只有私有IPv6但没有任何IPv4)
+        if [ "$ipv6_public" -eq 1 ] || ([ "$ipv6_supported" -eq 1 ] && [ "$ipv4_supported" -eq 0 ]); then
+            local tcp6_pidfile="$PIDFILE_DIR/tcp6_${local_port}.pid"
+            
+            # 如果已存在进程，停止它
+            if [ -f "$tcp6_pidfile" ]; then
+                local old_pid=$(cat "$tcp6_pidfile")
+                if kill -0 "$old_pid" 2>/dev/null; then
+                    kill "$old_pid"
+                    sleep 1
+                fi
+                rm -f "$tcp6_pidfile"
+            fi
+            
+            # 启动TCP IPv6转发并保存PID
+            socat TCP6-LISTEN:${local_port},fork,reuseaddr ${tcp_dst_type}:${target_ip}:${target_port} &
+            echo $! > "$tcp6_pidfile"
+            echo "启动TCP IPv6转发: [::]:$local_port -> $target_ip:$target_port (PID: $(cat $tcp6_pidfile))"
+        else
+            echo "跳过TCP IPv6转发: 系统没有公网IPv6地址，且有其他类型的连接可用"
+        fi
     fi
     
     if [[ "$protocol" == "udp" || "$protocol" == "both" ]]; then
-        # 创建唯一的PID文件名 
-        local udp_pidfile="$PIDFILE_DIR/udp_${local_port}.pid"
-        
-        # 如果已存在进程，停止它
-        if [ -f "$udp_pidfile" ]; then
-            local old_pid=$(cat "$udp_pidfile")
-            if kill -0 "$old_pid" 2>/dev/null; then
-                kill "$old_pid"
-                sleep 1
+        # 启动UDP IPv4监听转发 (如果系统有公网IPv4，或只有私有IPv4但没有任何IPv6)
+        if [ "$ipv4_public" -eq 1 ] || ([ "$ipv4_supported" -eq 1 ] && [ "$ipv6_supported" -eq 0 ]); then
+            local udp4_pidfile="$PIDFILE_DIR/udp4_${local_port}.pid"
+            
+            # 如果已存在进程，停止它
+            if [ -f "$udp4_pidfile" ]; then
+                local old_pid=$(cat "$udp4_pidfile")
+                if kill -0 "$old_pid" 2>/dev/null; then
+                    kill "$old_pid"
+                    sleep 1
+                fi
+                rm -f "$udp4_pidfile"
             fi
-            rm -f "$udp_pidfile"
+            
+            # 启动UDP IPv4转发并保存PID
+            socat UDP4-LISTEN:${local_port},fork,reuseaddr ${udp_dst_type}:${target_ip}:${target_port} &
+            echo $! > "$udp4_pidfile"
+            echo "启动UDP IPv4转发: 0.0.0.0:$local_port -> $target_ip:$target_port (PID: $(cat $udp4_pidfile))"
+        else
+            echo "跳过UDP IPv4转发: 系统没有公网IPv4地址，且有其他类型的连接可用"
         fi
         
-        # 启动UDP转发并保存PID
-        socat UDP6-LISTEN:${local_port},fork,reuseaddr UDP4:${target_ip}:${target_port} &
-        echo $! > "$udp_pidfile"
-        echo "启动UDP转发: [::]:$local_port -> $target_ip:$target_port (PID: $(cat $udp_pidfile))"
+        # 启动UDP IPv6监听转发 (如果系统有公网IPv6，或只有私有IPv6但没有任何IPv4)
+        if [ "$ipv6_public" -eq 1 ] || ([ "$ipv6_supported" -eq 1 ] && [ "$ipv4_supported" -eq 0 ]); then
+            local udp6_pidfile="$PIDFILE_DIR/udp6_${local_port}.pid"
+            
+            # 如果已存在进程，停止它
+            if [ -f "$udp6_pidfile" ]; then
+                local old_pid=$(cat "$udp6_pidfile")
+                if kill -0 "$old_pid" 2>/dev/null; then
+                    kill "$old_pid"
+                    sleep 1
+                fi
+                rm -f "$udp6_pidfile"
+            fi
+            
+            # 启动UDP IPv6转发并保存PID
+            socat UDP6-LISTEN:${local_port},fork,reuseaddr ${udp_dst_type}:${target_ip}:${target_port} &
+            echo $! > "$udp6_pidfile"
+            echo "启动UDP IPv6转发: [::]:$local_port -> $target_ip:$target_port (PID: $(cat $udp6_pidfile))"
+        else
+            echo "跳过UDP IPv6转发: 系统没有公网IPv6地址，且有其他类型的连接可用"
+        fi
     fi
 }
 
@@ -197,34 +412,58 @@ stop_relay() {
     
     # 根据协议停止相应的转发
     if [[ "$protocol" == "tcp" || "$protocol" == "both" ]]; then
-        local tcp_pidfile="$PIDFILE_DIR/tcp_${local_port}.pid"
-        if [ -f "$tcp_pidfile" ]; then
-            local pid=$(cat "$tcp_pidfile")
+        # 停止TCP IPv4
+        local tcp4_pidfile="$PIDFILE_DIR/tcp4_${local_port}.pid"
+        if [ -f "$tcp4_pidfile" ]; then
+            local pid=$(cat "$tcp4_pidfile")
             if kill -0 "$pid" 2>/dev/null; then
                 kill "$pid"
-                echo "已停止TCP转发端口 $local_port (PID: $pid)"
+                echo "已停止TCP IPv4转发端口 $local_port (PID: $pid)"
             else
-                echo "TCP转发端口 $local_port 未在运行"
+                echo "TCP IPv4转发端口 $local_port 未在运行"
             fi
-            rm -f "$tcp_pidfile"
-        else
-            echo "TCP转发端口 $local_port 未在运行"
+            rm -f "$tcp4_pidfile"
+        fi
+        
+        # 停止TCP IPv6
+        local tcp6_pidfile="$PIDFILE_DIR/tcp6_${local_port}.pid"
+        if [ -f "$tcp6_pidfile" ]; then
+            local pid=$(cat "$tcp6_pidfile")
+            if kill -0 "$pid" 2>/dev/null; then
+                kill "$pid"
+                echo "已停止TCP IPv6转发端口 $local_port (PID: $pid)"
+            else
+                echo "TCP IPv6转发端口 $local_port 未在运行"
+            fi
+            rm -f "$tcp6_pidfile"
         fi
     fi
     
     if [[ "$protocol" == "udp" || "$protocol" == "both" ]]; then
-        local udp_pidfile="$PIDFILE_DIR/udp_${local_port}.pid"
-        if [ -f "$udp_pidfile" ]; then
-            local pid=$(cat "$udp_pidfile")
+        # 停止UDP IPv4
+        local udp4_pidfile="$PIDFILE_DIR/udp4_${local_port}.pid"
+        if [ -f "$udp4_pidfile" ]; then
+            local pid=$(cat "$udp4_pidfile")
             if kill -0 "$pid" 2>/dev/null; then
                 kill "$pid"
-                echo "已停止UDP转发端口 $local_port (PID: $pid)"
+                echo "已停止UDP IPv4转发端口 $local_port (PID: $pid)"
             else
-                echo "UDP转发端口 $local_port 未在运行"
+                echo "UDP IPv4转发端口 $local_port 未在运行"
             fi
-            rm -f "$udp_pidfile"
-        else
-            echo "UDP转发端口 $local_port 未在运行"
+            rm -f "$udp4_pidfile"
+        fi
+        
+        # 停止UDP IPv6
+        local udp6_pidfile="$PIDFILE_DIR/udp6_${local_port}.pid"
+        if [ -f "$udp6_pidfile" ]; then
+            local pid=$(cat "$udp6_pidfile")
+            if kill -0 "$pid" 2>/dev/null; then
+                kill "$pid"
+                echo "已停止UDP IPv6转发端口 $local_port (PID: $pid)"
+            else
+                echo "UDP IPv6转发端口 $local_port 未在运行"
+            fi
+            rm -f "$udp6_pidfile"
         fi
     fi
 }
@@ -258,7 +497,7 @@ stop_all() {
     echo "停止所有转发规则..."
     
     # 查找所有socat进程并停止
-    local pids=$(pgrep -f "socat (TCP|UDP)6-LISTEN" 2>/dev/null)
+    local pids=$(pgrep -f "socat (TCP|UDP)[46]-LISTEN" 2>/dev/null)
     if [ -n "$pids" ]; then
         echo "正在终止socat进程: $pids"
         kill $pids 2>/dev/null
@@ -283,33 +522,59 @@ check_status() {
     local local_port=$1
     local found=0
     
-    # 检查TCP转发
-    local tcp_pidfile="$PIDFILE_DIR/tcp_${local_port}.pid"
-    if [ -f "$tcp_pidfile" ]; then
-        local pid=$(cat "$tcp_pidfile")
+    # 检查TCP IPv4转发
+    local tcp4_pidfile="$PIDFILE_DIR/tcp4_${local_port}.pid"
+    if [ -f "$tcp4_pidfile" ]; then
+        local pid=$(cat "$tcp4_pidfile")
         if kill -0 "$pid" 2>/dev/null; then
-            echo "TCP端口 $local_port: 运行中 (PID: $pid)"
+            echo "TCP IPv4端口 $local_port: 运行中 (PID: $pid)"
             found=1
         else
-            echo "TCP端口 $local_port: 进程已终止 (PID文件存在)"
+            echo "TCP IPv4端口 $local_port: 进程已终止 (PID文件存在)"
             found=1
         fi
     fi
     
-    # 检查UDP转发
-    local udp_pidfile="$PIDFILE_DIR/udp_${local_port}.pid"
-    if [ -f "$udp_pidfile" ]; then
-        local pid=$(cat "$udp_pidfile")
+    # 检查TCP IPv6转发
+    local tcp6_pidfile="$PIDFILE_DIR/tcp6_${local_port}.pid"
+    if [ -f "$tcp6_pidfile" ]; then
+        local pid=$(cat "$tcp6_pidfile")
         if kill -0 "$pid" 2>/dev/null; then
-            echo "UDP端口 $local_port: 运行中 (PID: $pid)"
+            echo "TCP IPv6端口 $local_port: 运行中 (PID: $pid)"
             found=1
         else
-            echo "UDP端口 $local_port: 进程已终止 (PID文件存在)"
+            echo "TCP IPv6端口 $local_port: 进程已终止 (PID文件存在)"
             found=1
         fi
     fi
     
-    # 如果两种协议都没找到
+    # 检查UDP IPv4转发
+    local udp4_pidfile="$PIDFILE_DIR/udp4_${local_port}.pid"
+    if [ -f "$udp4_pidfile" ]; then
+        local pid=$(cat "$udp4_pidfile")
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "UDP IPv4端口 $local_port: 运行中 (PID: $pid)"
+            found=1
+        else
+            echo "UDP IPv4端口 $local_port: 进程已终止 (PID文件存在)"
+            found=1
+        fi
+    fi
+    
+    # 检查UDP IPv6转发
+    local udp6_pidfile="$PIDFILE_DIR/udp6_${local_port}.pid"
+    if [ -f "$udp6_pidfile" ]; then
+        local pid=$(cat "$udp6_pidfile")
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "UDP IPv6端口 $local_port: 运行中 (PID: $pid)"
+            found=1
+        else
+            echo "UDP IPv6端口 $local_port: 进程已终止 (PID文件存在)"
+            found=1
+        fi
+    fi
+    
+    # 如果所有协议都没找到
     if [ $found -eq 0 ]; then
         echo "端口 $local_port 没有活动的转发"
     fi
@@ -318,6 +583,29 @@ check_status() {
 # 检查所有转发状态
 check_all_status() {
     echo "检查所有转发状态..."
+    
+    # 检测系统IP支持
+    local ip_support=$(check_system_ip_support)
+    local ipv4_supported=$(echo "$ip_support" | cut -d',' -f1)
+    local ipv6_supported=$(echo "$ip_support" | cut -d',' -f2)
+    local ipv4_public=$(echo "$ip_support" | cut -d',' -f3)
+    local ipv6_public=$(echo "$ip_support" | cut -d',' -f4)
+    
+    echo "系统IP支持情况:"
+    if [ "$ipv4_supported" -eq 1 ]; then
+        echo " - IPv4: 支持 (公网: $([ "$ipv4_public" -eq 1 ] && echo "是" || echo "否"))"
+    else
+        echo " - IPv4: 不支持"
+    fi
+    
+    if [ "$ipv6_supported" -eq 1 ]; then
+        echo " - IPv6: 支持 (公网: $([ "$ipv6_public" -eq 1 ] && echo "是" || echo "否"))"
+    else
+        echo " - IPv6: 不支持"
+    fi
+    
+    # 显示详细的IP地址信息
+    show_system_ips
     
     # 首先从配置文件获取所有端口
     local ports=()
@@ -340,7 +628,7 @@ check_all_status() {
     
     # 检查系统中运行的socat进程
     echo -e "\n当前运行的socat进程:"
-    ps aux | grep -E "socat (TCP|UDP)6-LISTEN" | grep -v grep || echo "没有运行中的socat进程"
+    ps aux | grep -E "socat (TCP|UDP)[46]-LISTEN" | grep -v grep || echo "没有运行中的socat进程"
 }
 
 # 根据参数执行相应操作
@@ -407,15 +695,22 @@ validate_ip() {
             fi
         done
         return 0
+    # IPv6地址验证 (简化验证，支持标准IPv6格式)
+    elif [[ $ip =~ ^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$ || $ip =~ ^::([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}$ || $ip =~ ^([0-9a-fA-F]{1,4}:){1,7}:$ || $ip =~ ^[0-9a-fA-F]{1,4}::([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}$ || $ip =~ ^([0-9a-fA-F]{1,4}:){2}:([0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4}$ || $ip =~ ^([0-9a-fA-F]{1,4}:){3}:([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4}$ || $ip =~ ^([0-9a-fA-F]{1,4}:){4}:([0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4}$ || $ip =~ ^([0-9a-fA-F]{1,4}:){5}:([0-9a-fA-F]{1,4}:){0,1}[0-9a-fA-F]{1,4}$ || $ip =~ ^([0-9a-fA-F]{1,4}:){6}:[0-9a-fA-F]{1,4}$ ]]; then
+        return 0
+    # 简单主机名验证
+    elif [[ $ip =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
+        return 0
+    else
+        return 1
     fi
-    return 1
 }
 
 add_relay_rule() {
     # 确保配置目录存在
     mkdir -p $(dirname "$RELAY_CONFIG")
     
-    echo -e "${YELLOW}添加新的IPv6到IPv4转发规则${NC}"
+    echo -e "${YELLOW}添加新的端口转发规则${NC}"
     
     echo -e "${YELLOW}请选择协议类型：${NC}"
     echo "1. TCP"
@@ -433,10 +728,10 @@ add_relay_rule() {
             ;;
     esac
     
-    echo -e "${YELLOW}请输入本地IPv6监听端口：${NC}"
+    echo -e "${YELLOW}请输入本地监听端口：${NC}"
     read -p "> " local_port
     
-    echo -e "${YELLOW}请输入目标IPv4地址：${NC}"
+    echo -e "${YELLOW}请输入目标IP地址/域名：${NC}"
     read -p "> " target_ip
     
     echo -e "${YELLOW}请输入目标端口：${NC}"
@@ -449,7 +744,7 @@ add_relay_rule() {
     fi
     
     if ! validate_ip "$target_ip"; then
-        echo -e "${RED}无效的目标IP地址${NC}"
+        echo -e "${RED}无效的目标地址${NC}"
         return 1
     fi
     
@@ -527,9 +822,9 @@ list_relay_rules() {
         return
     fi
     
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    printf "${CYAN}%-6s %-20s %-10s %-10s %-10s${NC}\n" "序号" "本地端口" "目标IP" "目标端口" "协议"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    printf "${CYAN}%-6s %-15s %-30s %-15s %-10s${NC}\n" "序号" "本地端口" "目标地址" "目标端口" "协议"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     
     local line_num=1
     while IFS=' ' read -r local_port target_ip target_port protocol; do
@@ -539,11 +834,11 @@ list_relay_rules() {
         # 如果没有指定协议，默认为tcp
         [ -z "$protocol" ] && protocol="tcp"
         
-        printf "%-6s %-20s %-10s %-10s %-10s\n" "$line_num" "$local_port" "$target_ip" "$target_port" "$protocol"
+        printf "%-6s %-15s %-30s %-15s %-10s\n" "$line_num" "$local_port" "$target_ip" "$target_port" "$protocol"
         ((line_num++))
     done < "$RELAY_CONFIG"
     
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     
     # 检查转发状态
     echo -e "\n${CYAN}转发状态:${NC}"
@@ -556,7 +851,7 @@ setup_autostart() {
     # 创建systemd服务
     cat > "$SERVICE_DIR/socat-relay.service" << EOF
 [Unit]
-Description=Socat IPv6 to IPv4 Relay Service
+Description=Socat Port Relay Service
 After=network.target
 
 [Service]
@@ -617,28 +912,7 @@ check_system_status() {
         echo -e "${RED}未安装${NC}"
     fi
     
-    # 检查IPv6支持
-    echo -n "检查IPv6支持: "
-    if [ -f /proc/net/if_inet6 ]; then
-        echo -e "${GREEN}支持${NC}"
-        echo "IPv6接口:"
-        ip -6 addr show | grep "inet6" | grep -v "::1/128"
-    else
-        echo -e "${RED}不支持${NC}"
-    fi
-    
-    # 检查IPv4支持
-    echo -n "检查IPv4支持: "
-    if ip -4 addr show &>/dev/null; then
-        echo -e "${GREEN}支持${NC}"
-        echo "IPv4接口:"
-        ip -4 addr show | grep "inet " | grep -v "127.0.0.1"
-    else
-        echo -e "${RED}不支持${NC}"
-    fi
-    
-    # 检查转发状态
-    echo -e "\n${CYAN}转发状态:${NC}"
+    # 直接调用脚本的状态检查功能，显示详细的IP状态
     "$FULL_SCRIPT_PATH" status
     
     # 检查端口占用
