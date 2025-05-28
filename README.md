@@ -4,6 +4,7 @@
 
 ## relay-iptables.sh
 - 描述：IPTables端口转发管理工具
+- 功能：此脚本只支持IPv4端口转发，IPv6建议使用Socat
 
 ```
 wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-iptables.sh && chmod +x relay-iptables.sh && ./relay-iptables.sh
@@ -11,6 +12,7 @@ wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.c
 
 ## relay-socat.sh
 - 描述：Socat端口转发管理工具
+- 功能：此脚本支持IPv4和IPv6的端口转发
 
 ```
 wget --no-check-certificate -O relay-socat.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-socat.sh && chmod +x relay-socat.sh && ./relay-socat.sh
