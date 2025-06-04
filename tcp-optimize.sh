@@ -74,6 +74,9 @@ select_function() {
 # 功能函数
 ###################
 tcp_optimize() {
+	#清除IP转发配置
+	sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
+	sed -i '/net.ipv6.conf.all.forwarding/d' /etc/sysctl.conf
 	#清除拥塞控制配置
 	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -103,6 +106,9 @@ tcp_optimize() {
 	sed -i '/net.ipv4.tcp_moderate_rcvbuf/d' /etc/sysctl.conf
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
+# IP转发
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
 #BBR优化
 net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
