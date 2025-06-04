@@ -187,39 +187,48 @@ network_optimize() {
 
     # 基础网络优化参数
     cat > "$tmp_sysctl" << EOF
-# 启用IP转发
-net.ipv4.ip_forward=1
-net.ipv6.conf.all.forwarding=1
-# BBR优化
-net.core.default_qdisc=fq
-net.ipv4.tcp_congestion_control=bbr
-net.ipv4.tcp_slow_start_after_idle=0
-# 内存优化
-vm.swappiness=1
+#IP转发
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.default.forwarding = 1
+#BBR优化
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_slow_start_after_idle = 0
 #TCP缓冲区优化
-net.core.rmem_max=16777216
-net.core.wmem_max=16777216
-net.ipv4.tcp_rmem=4096 87380 16777216
-net.ipv4.tcp_wmem=4096 16384 16777216
-net.ipv4.udp_rmem_min=8192
-net.ipv4.udp_wmem_min=8192
-#链接超时优化
-net.ipv4.tcp_keepalive_time=600
-net.ipv4.tcp_keepalive_intvl=15
-net.ipv4.tcp_keepalive_probes=5
-net.ipv4.tcp_fin_timeout=30
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.ipv4.tcp_rmem = 4096 87380 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.ipv4.udp_rmem_min = 8192
+net.ipv4.udp_wmem_min = 8192
+#链接优化
+net.ipv4.tcp_keepalive_time = 600
+net.ipv4.tcp_keepalive_intvl = 15
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_fin_timeout = 30
+#队列优化
+fs.file-max = 1000000
+net.ipv4.tcp_max_syn_backlog = 8192
+net.core.somaxconn = 8192
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_abort_on_overflow = 1
 #其他重要配置优化
-fs.file-max=1000000
-net.ipv4.tcp_no_metrics_save=1
-net.ipv4.tcp_ecn=0
-net.ipv4.tcp_frto=2
-net.ipv4.tcp_mtu_probing=1
-net.ipv4.tcp_rfc1337=1
-net.ipv4.tcp_sack=1
-net.ipv4.tcp_fack=1
-net.ipv4.tcp_window_scaling=1
-net.ipv4.tcp_adv_win_scale=1
-net.ipv4.tcp_moderate_rcvbuf=1
+net.ipv4.tcp_no_metrics_save = 1
+net.ipv4.tcp_ecn = 0
+net.ipv4.tcp_frto = 2
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_rfc1337 = 1
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_fack = 1
+net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_adv_win_scale = 2
+net.ipv4.tcp_moderate_rcvbuf = 1
+net.ipv4.tcp_timestamps = 1
+net.ipv4.conf.all.rp_filter = 0
+net.ipv4.conf.default.rp_filter = 0
+net.ipv4.conf.all.route_localnet = 1
+net.ipv4.ip_local_port_range = 1024 65535
 EOF
 
     # 备份和更新sysctl配置
