@@ -190,15 +190,12 @@ network_optimize() {
 # 启用IP转发
 net.ipv4.ip_forward=1
 net.ipv6.conf.all.forwarding=1
-
 # BBR优化
 net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 net.ipv4.tcp_slow_start_after_idle=0
-
 # 内存优化
 vm.swappiness=1
-
 #TCP缓冲区优化
 net.core.rmem_max=16777216
 net.core.wmem_max=16777216
@@ -206,12 +203,11 @@ net.ipv4.tcp_rmem=4096 87380 16777216
 net.ipv4.tcp_wmem=4096 16384 16777216
 net.ipv4.udp_rmem_min=8192
 net.ipv4.udp_wmem_min=8192
-
 #链接超时优化
 net.ipv4.tcp_keepalive_time=600
 net.ipv4.tcp_keepalive_intvl=15
 net.ipv4.tcp_keepalive_probes=5
-
+net.ipv4.tcp_fin_timeout=30
 #其他重要配置优化
 fs.file-max=1000000
 net.ipv4.tcp_no_metrics_save=1
