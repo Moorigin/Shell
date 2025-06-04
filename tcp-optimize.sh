@@ -83,10 +83,10 @@ tcp_optimize() {
 	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
 	#清除TCP缓冲区配置
-	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
 	sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
 	sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
+	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
+	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.udp_rmem_min/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.udp_wmem_min/d' /etc/sysctl.conf
 	#清除超时配置
