@@ -107,8 +107,8 @@ tcp_optimize() {
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
 # IP转发
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding = 1
+net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
 #BBR优化
 net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
@@ -121,9 +121,9 @@ net.ipv4.tcp_wmem=4096 16384 16777216
 net.ipv4.udp_rmem_min=8192
 net.ipv4.udp_wmem_min=8192
 #链接超时优化
-net.ipv4.tcp_keepalive_time = 600
-net.ipv4.tcp_keepalive_intvl = 15
-net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_keepalive_time=600
+net.ipv4.tcp_keepalive_intvl=15
+net.ipv4.tcp_keepalive_probes=5
 #其他重要配置优化
 fs.file-max=1000000
 net.ipv4.tcp_no_metrics_save=1
