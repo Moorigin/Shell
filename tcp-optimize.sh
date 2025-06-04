@@ -92,6 +92,7 @@ tcp_optimize() {
 	sed -i '/net.ipv4.tcp_keepalive_time/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_keepalive_intvl/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_keepalive_probes/d' /etc/sysctl.conf
+	sed -i '/net.ipv4.tcp_fin_timeout/d' /etc/sysctl.conf
 	#清除其他重要配置
 	sed -i '/fs.file-max/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_no_metrics_save/d' /etc/sysctl.conf
@@ -124,6 +125,7 @@ net.ipv4.udp_wmem_min=8192
 net.ipv4.tcp_keepalive_time=600
 net.ipv4.tcp_keepalive_intvl=15
 net.ipv4.tcp_keepalive_probes=5
+net.ipv4.tcp_fin_timeout=30
 #其他重要配置优化
 fs.file-max=1000000
 net.ipv4.tcp_no_metrics_save=1
