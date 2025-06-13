@@ -10,9 +10,9 @@
 wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-iptables.sh && chmod +x relay-iptables.sh && ./relay-iptables.sh
 ```
 
-## relay-socat.sh
-- 描述：Socat端口转发管理工具
-- 功能：此脚本支持IPv4和IPv6的端口转发
+## relay-realm.sh
+- 描述：Realm端口转发管理工具
+- 功能：此脚本支持IPv4和IPv6的端口转发，需自备配置文件
 
 ```
 wget --no-check-certificate -O relay-socat.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-socat.sh && chmod +x relay-socat.sh && ./relay-socat.sh
