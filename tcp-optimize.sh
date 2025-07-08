@@ -81,14 +81,11 @@ tcp_optimize() {
 	#清除拥塞控制配置
 	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
 	#清除TCP缓冲区配置
 	sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
 	sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.udp_rmem_min/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.udp_wmem_min/d' /etc/sysctl.conf
 	#清除超时配置
 	sed -i '/net.ipv4.tcp_keepalive_time/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_keepalive_intvl/d' /etc/sysctl.conf
@@ -98,23 +95,10 @@ tcp_optimize() {
 	sed -i '/fs.file-max/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_max_syn_backlog/d' /etc/sysctl.conf
 	sed -i '/net.core.somaxconn/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_tw_reuse/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_abort_on_overflow/d' /etc/sysctl.conf
 	#清除其他重要配置
-	sed -i '/net.ipv4.tcp_no_metrics_save/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_ecn/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_frto/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_mtu_probing/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_rfc1337/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_sack/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_fack/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_window_scaling/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_adv_win_scale/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_moderate_rcvbuf/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_timestamps/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.conf.all.rp_filter/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.conf.default.rp_filter/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.conf.all.route_localnet/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.ip_local_port_range/d' /etc/sysctl.conf
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
@@ -125,14 +109,11 @@ net.ipv6.conf.default.forwarding = 1
 #BBR优化
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
-net.ipv4.tcp_slow_start_after_idle = 0
 #TCP缓冲区优化
-net.core.rmem_max = 67108864
-net.core.wmem_max = 67108864
-net.ipv4.tcp_rmem = 4096 87380 67108864
-net.ipv4.tcp_wmem = 4096 65536 67108864
-net.ipv4.udp_rmem_min = 8192
-net.ipv4.udp_wmem_min = 8192
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 16384 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
 #链接优化
 net.ipv4.tcp_keepalive_time = 600
 net.ipv4.tcp_keepalive_intvl = 15
@@ -142,23 +123,10 @@ net.ipv4.tcp_fin_timeout = 30
 fs.file-max = 1000000
 net.ipv4.tcp_max_syn_backlog = 8192
 net.core.somaxconn = 8192
-net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_abort_on_overflow = 1
 #其他重要配置优化
-net.ipv4.tcp_no_metrics_save = 1
-net.ipv4.tcp_ecn = 0
-net.ipv4.tcp_frto = 2
-net.ipv4.tcp_mtu_probing = 1
-net.ipv4.tcp_rfc1337 = 1
 net.ipv4.tcp_sack = 1
-net.ipv4.tcp_fack = 1
 net.ipv4.tcp_window_scaling = 1
-net.ipv4.tcp_adv_win_scale = 2
-net.ipv4.tcp_moderate_rcvbuf = 1
 net.ipv4.tcp_timestamps = 1
-net.ipv4.conf.all.rp_filter = 0
-net.ipv4.conf.default.rp_filter = 0
-net.ipv4.conf.all.route_localnet = 1
 net.ipv4.ip_local_port_range = 1024 65535
 EOF
 	if sysctl -p && sysctl --system; then
