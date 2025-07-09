@@ -95,11 +95,6 @@ tcp_optimize() {
 	sed -i '/fs.file-max/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_max_syn_backlog/d' /etc/sysctl.conf
 	sed -i '/net.core.somaxconn/d' /etc/sysctl.conf
-	#清除其他重要配置
-	sed -i '/net.ipv4.tcp_sack/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_window_scaling/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_timestamps/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.ip_local_port_range/d' /etc/sysctl.conf
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
 #IP转发
@@ -123,11 +118,6 @@ net.ipv4.tcp_fin_timeout = 30
 fs.file-max = 1000000
 net.ipv4.tcp_max_syn_backlog = 8192
 net.core.somaxconn = 8192
-#其他重要配置优化
-net.ipv4.tcp_sack = 1
-net.ipv4.tcp_window_scaling = 1
-net.ipv4.tcp_timestamps = 1
-net.ipv4.ip_local_port_range = 1024 65535
 EOF
 	if sysctl -p && sysctl --system; then
 		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
