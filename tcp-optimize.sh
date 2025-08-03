@@ -105,10 +105,10 @@ net.ipv6.conf.default.forwarding = 1
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 #TCP缓冲区优化
-net.core.rmem_max = 16777216
-net.core.wmem_max = 16777216
-net.ipv4.tcp_rmem = 4096 16384 16777216
-net.ipv4.tcp_wmem = 4096 65536 16777216
+net.core.rmem_max = 8388608
+net.core.wmem_max = 8388608
+net.ipv4.tcp_rmem = 4096 16384 8388608
+net.ipv4.tcp_wmem = 4096 65536 8388608
 #链接优化
 net.ipv4.tcp_keepalive_time = 600
 net.ipv4.tcp_keepalive_intvl = 15
