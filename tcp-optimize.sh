@@ -78,6 +78,9 @@ tcp_optimize() {
 	sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.all.forwarding/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.default.forwarding/d' /etc/sysctl.conf
+	sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf
+	sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf
+	sed -i '/net.ipv6.conf.lo.disable_ipv6/d' /etc/sysctl.conf
 	#清除拥塞控制配置
 	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -101,6 +104,9 @@ tcp_optimize() {
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 net.ipv6.conf.default.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+net.ipv6.conf.lo.disable_ipv6 = 0
 #BBR优化
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
