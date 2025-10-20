@@ -80,24 +80,16 @@ tcp_optimize() {
 	sed -i '/net.ipv6.conf.default.forwarding/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.lo.disable_ipv6/d' /etc/sysctl.conf
 	#清除拥塞控制配置
 	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
 	#清除TCP缓冲区配置
+	sed -i '/net.core.rmem_default/d' /etc/sysctl.conf
+	sed -i '/net.core.rmem_default/d' /etc/sysctl.conf
 	sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
 	sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
-	#清除超时配置
-	sed -i '/net.ipv4.tcp_keepalive_time/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_keepalive_intvl/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_keepalive_probes/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_fin_timeout/d' /etc/sysctl.conf
-	#队列优化
-	sed -i '/fs.file-max/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_max_syn_backlog/d' /etc/sysctl.conf
-	sed -i '/net.core.somaxconn/d' /etc/sysctl.conf
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
 #IP转发
@@ -106,24 +98,16 @@ net.ipv6.conf.all.forwarding = 1
 net.ipv6.conf.default.forwarding = 1
 net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
-net.ipv6.conf.lo.disable_ipv6 = 0
 #BBR优化
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 #TCP缓冲区优化
+net.core.rmem_default = 87380
+net.core.wmem_default = 65536
 net.core.rmem_max = 8388608
 net.core.wmem_max = 8388608
-net.ipv4.tcp_rmem = 4096 16384 8388608
+net.ipv4.tcp_rmem = 4096 87380 8388608
 net.ipv4.tcp_wmem = 4096 65536 8388608
-#链接优化
-net.ipv4.tcp_keepalive_time = 600
-net.ipv4.tcp_keepalive_intvl = 15
-net.ipv4.tcp_keepalive_probes = 5
-net.ipv4.tcp_fin_timeout = 30
-#队列优化
-fs.file-max = 1000000
-net.ipv4.tcp_max_syn_backlog = 8192
-net.core.somaxconn = 8192
 EOF
 	if sysctl -p && sysctl --system; then
 		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
