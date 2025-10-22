@@ -80,10 +80,10 @@ tcp_optimize() {
 	sed -i '/net.ipv6.conf.default.forwarding/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf
-	#清除拥塞控制配置
+	#清除TCP配置
 	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-	#清除TCP缓冲区配置
+	sed -i '/net.ipv4.tcp_moderate_rcvbuf' /etc/sysctl.conf
 	sed -i '/net.core.rmem_default/d' /etc/sysctl.conf
 	sed -i '/net.core.rmem_default/d' /etc/sysctl.conf
 	sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
@@ -98,16 +98,16 @@ net.ipv6.conf.all.forwarding = 1
 net.ipv6.conf.default.forwarding = 1
 net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
-#BBR优化
+#TCP调优
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
-#TCP缓冲区优化
+net.ipv4.tcp_moderate_rcvbuf = 1
 net.core.rmem_default = 87380
 net.core.wmem_default = 65536
-net.core.rmem_max = 8388608
-net.core.wmem_max = 8388608
-net.ipv4.tcp_rmem = 4096 87380 8388608
-net.ipv4.tcp_wmem = 4096 65536 8388608
+net.core.rmem_max = 4194304
+net.core.wmem_max = 4194304
+net.ipv4.tcp_rmem = 4096 87380 4194304
+net.ipv4.tcp_wmem = 4096 65536 4194304
 EOF
 	if sysctl -p && sysctl --system; then
 		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
