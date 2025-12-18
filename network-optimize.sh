@@ -28,15 +28,17 @@ show_menu() {
     echo -e "${CYAN}Linux网络优化工具            ${NC}"
     echo -e "${CYAN}Powered by Moorigin         ${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${CYAN}1. TCP网络优化（低延迟）       ${NC}"
-    echo -e "${CYAN}2. TCP网络优化（高延迟）       ${NC}"
-    echo -e "${CYAN}3. IPv4优先                  ${NC}"
-    echo -e "${CYAN}4. IPv6优先                  ${NC}"
-    echo -e "${CYAN}5. 屏蔽ICMP                  ${NC}"
-    echo -e "${CYAN}6. 放开ICMP                  ${NC}"
+    echo -e "${CYAN}1. TCP网络优化（2M）          ${NC}"
+    echo -e "${CYAN}2. TCP网络优化（4M）          ${NC}"
+    echo -e "${CYAN}3. TCP网络优化（8M）          ${NC}"
+    echo -e "${CYAN}4. TCP网络优化（16M）         ${NC}"
+    echo -e "${CYAN}5. IPv4优先                  ${NC}"
+    echo -e "${CYAN}6. IPv6优先                  ${NC}"
+    echo -e "${CYAN}7. 屏蔽ICMP                  ${NC}"
+    echo -e "${CYAN}8. 放开ICMP                  ${NC}"
     echo -e "${CYAN}0. 退出程序                  ${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "请输入选项 [0-6]: "
+    echo -e "请输入选项 [0-8]: "
 }
 
 select_function() {
@@ -45,26 +47,34 @@ select_function() {
     
     case $choice in
         1)
-            echo -e "${GREEN}执行TCP网络优化（低延迟）...${NC}"
-            tcp_optimize_low
+            echo -e "${GREEN}执行TCP网络优化（2M）...${NC}"
+            tcp_optimize_2M
             ;;
         2)
-            echo -e "${GREEN}执行TCP网络优化（高延迟）...${NC}"
-            tcp_optimize_high
+            echo -e "${GREEN}执行TCP网络优化（4M）...${NC}"
+            tcp_optimize_4M
             ;;
         3)
+            echo -e "${GREEN}执行TCP网络优化（8M）...${NC}"
+            tcp_optimize_8M
+            ;;
+        4)
+            echo -e "${GREEN}执行TCP网络优化（16M）...${NC}"
+            tcp_optimize_16M
+            ;;
+        5)
             echo -e "${GREEN}设置IPv4优先...${NC}"
             set_ipv4_priority
             ;;
-        4)
+        6)
             echo -e "${GREEN}设置IPv6优先...${NC}"
             set_ipv6_priority
             ;;
-        5)
+        7)
             echo -e "${GREEN}执行屏蔽ICMP请求...${NC}"
             shield_icmp
             ;;
-        6)
+        8)
             echo -e "${GREEN}执行开放ICMP请求...${NC}"
             open_icmp
             ;;
@@ -88,8 +98,8 @@ select_function() {
 ###################
 # 功能函数
 ###################
-tcp_optimize_low() {
-	#清除IP转发配置
+clean_sysctl_config() {
+    #清除IP转发配置
 	sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.all.forwarding/d' /etc/sysctl.conf
 	sed -i '/net.ipv6.conf.default.forwarding/d' /etc/sysctl.conf
@@ -105,6 +115,10 @@ tcp_optimize_low() {
 	sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
 	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
+}
+
+tcp_optimize_2M() {
+	clean_sysctl_config
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
 #IP转发
@@ -131,23 +145,64 @@ EOF
 	fi
 }
 
-tcp_optimize_high() {
-	#清除IP转发配置
-	sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.all.forwarding/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.default.forwarding/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf
-	#清除TCP配置
-	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_moderate_rcvbuf/d' /etc/sysctl.conf
-	sed -i '/net.core.rmem_default/d' /etc/sysctl.conf
-	sed -i '/net.core.wmem_default/d' /etc/sysctl.conf
-	sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
-	sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
+tcp_optimize_4M() {
+	clean_sysctl_config
+	#写入新的配置
+	cat >> /etc/sysctl.conf << EOF
+#IP转发
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.default.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+#TCP调优
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_moderate_rcvbuf = 1
+net.core.rmem_default = 87380
+net.core.wmem_default = 65536
+net.core.rmem_max = 4194304
+net.core.wmem_max = 4194304
+net.ipv4.tcp_rmem = 4096 87380 4194304
+net.ipv4.tcp_wmem = 4096 65536 4194304
+EOF
+	if sysctl -p && sysctl --system; then
+		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
+	else
+		echo -e "${RED}TCP网络优化配置应用失败，请检查系统日志${NC}"
+	fi
+}
+
+tcp_optimize_8M() {
+	clean_sysctl_config
+	#写入新的配置
+	cat >> /etc/sysctl.conf << EOF
+#IP转发
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.ipv6.conf.default.forwarding = 1
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+#TCP调优
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_moderate_rcvbuf = 1
+net.core.rmem_default = 87380
+net.core.wmem_default = 65536
+net.core.rmem_max = 8388608
+net.core.wmem_max = 8388608
+net.ipv4.tcp_rmem = 4096 87380 8388608
+net.ipv4.tcp_wmem = 4096 65536 8388608
+EOF
+	if sysctl -p && sysctl --system; then
+		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
+	else
+		echo -e "${RED}TCP网络优化配置应用失败，请检查系统日志${NC}"
+	fi
+}
+
+tcp_optimize_16M() {
+	clean_sysctl_config
 	#写入新的配置
 	cat >> /etc/sysctl.conf << EOF
 #IP转发
