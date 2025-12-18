@@ -18,9 +18,9 @@ wget --no-check-certificate -O relay-iptables.sh https://raw.githubusercontent.c
 wget --no-check-certificate -O relay-socat.sh https://raw.githubusercontent.com/Moorigin/Shell/main/relay-socat.sh && chmod +x relay-socat.sh && ./relay-socat.sh
 ```
 
-## tcp-optimize.sh
+## network-optimize.sh
 - 描述：Linux网络优化
 
 ```
-wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com/Moorigin/Shell/main/tcp-optimize.sh && bash tcp-optimize.sh
+wget --no-check-certificate -O tcp-optimize.sh https://raw.githubusercontent.com/Moorigin/Shell/main/network-optimize.sh && bash network-optimize.sh
 ```
