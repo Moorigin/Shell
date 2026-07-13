@@ -11,6 +11,16 @@ CYAN='\033[0;36m'
 NC='\033[0m' # 无颜色
 
 ###################
+# sysctl配置文件
+###################
+# Debian 13的systemd-sysctl不再读取/etc/sysctl.conf，
+# 本脚本使用/etc/sysctl.d中的独立配置片段，确保重启后仍然生效。
+SYSCTL_DIR="/etc/sysctl.d"
+TCP_SYSCTL_CONFIG="${SYSCTL_DIR}/99-network-optimize.conf"
+ICMP_SYSCTL_CONFIG="${SYSCTL_DIR}/99-network-optimize-icmp.conf"
+LEGACY_SYSCTL_CONFIG="/etc/sysctl.conf"
+
+###################
 # 辅助函数
 ###################
 check_root() {
@@ -88,47 +98,71 @@ select_function() {
 ###################
 # 功能函数
 ###################
-clean_sysctl_config() {
-    #清除IP转发配置
-	sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.all.forwarding/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.default.forwarding/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.all.disable_ipv6/d' /etc/sysctl.conf
-	sed -i '/net.ipv6.conf.default.disable_ipv6/d' /etc/sysctl.conf
-	#清除TCP配置
-	sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_moderate_rcvbuf/d' /etc/sysctl.conf
-	sed -i '/net.core.rmem_default/d' /etc/sysctl.conf
-	sed -i '/net.core.wmem_default/d' /etc/sysctl.conf
-	sed -i '/net.core.rmem_max/d' /etc/sysctl.conf
-	sed -i '/net.core.wmem_max/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_rmem/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.tcp_wmem/d' /etc/sysctl.conf
+remove_sysctl_keys() {
+	local config_file=$1
+	shift
+
+	[[ -f $config_file ]] || return 0
+
+	local key key_pattern
+	for key in "$@"; do
+		key_pattern=${key//./\\.}
+		sed -i "\\|^[[:space:]]*${key_pattern}[[:space:]]*=|d" "$config_file"
+	done
 }
 
-tcp_optimize_4M() {
-	clean_sysctl_config
-	#写入新的配置
-	cat >> /etc/sysctl.conf << EOF
-#IP转发
+clean_legacy_tcp_config() {
+	# 清理旧版本脚本写入/etc/sysctl.conf的同名配置，避免手动运行
+	# sysctl --system时旧值覆盖本脚本的配置。
+	remove_sysctl_keys "$LEGACY_SYSCTL_CONFIG" \
+		net.ipv4.ip_forward \
+		net.ipv6.conf.all.forwarding \
+		net.ipv6.conf.default.forwarding \
+		net.ipv6.conf.all.disable_ipv6 \
+		net.ipv6.conf.default.disable_ipv6 \
+		net.core.default_qdisc \
+		net.ipv4.tcp_congestion_control \
+		net.ipv4.tcp_moderate_rcvbuf \
+		net.core.rmem_default \
+		net.core.wmem_default \
+		net.core.rmem_max \
+		net.core.wmem_max \
+		net.ipv4.tcp_rmem \
+		net.ipv4.tcp_wmem
+}
+
+write_tcp_config() {
+	local max_buffer=$1
+
+	install -d -m 0755 "$SYSCTL_DIR"
+	clean_legacy_tcp_config
+
+	cat > "$TCP_SYSCTL_CONFIG" << EOF
+# 由network-optimize.sh管理
+# IP转发
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 net.ipv6.conf.default.forwarding = 1
 net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
-#TCP调优
+# TCP调优
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_moderate_rcvbuf = 1
 net.core.rmem_default = 87380
 net.core.wmem_default = 65536
-net.core.rmem_max = 4194304
-net.core.wmem_max = 4194304
-net.ipv4.tcp_rmem = 4096 87380 4194304
-net.ipv4.tcp_wmem = 4096 65536 4194304
+net.core.rmem_max = ${max_buffer}
+net.core.wmem_max = ${max_buffer}
+net.ipv4.tcp_rmem = 4096 87380 ${max_buffer}
+net.ipv4.tcp_wmem = 4096 65536 ${max_buffer}
 EOF
-	if sysctl -p && sysctl --system; then
+
+	# 立即加载本脚本的配置；重启时由systemd-sysctl自动加载。
+	sysctl -p "$TCP_SYSCTL_CONFIG"
+}
+
+tcp_optimize_4M() {
+	if write_tcp_config 4194304; then
 		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
 	else
 		echo -e "${RED}TCP网络优化配置应用失败，请检查系统日志${NC}"
@@ -136,27 +170,7 @@ EOF
 }
 
 tcp_optimize_16M() {
-	clean_sysctl_config
-	#写入新的配置
-	cat >> /etc/sysctl.conf << EOF
-#IP转发
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding = 1
-net.ipv6.conf.default.forwarding = 1
-net.ipv6.conf.all.disable_ipv6 = 0
-net.ipv6.conf.default.disable_ipv6 = 0
-#TCP调优
-net.core.default_qdisc = fq
-net.ipv4.tcp_congestion_control = bbr
-net.ipv4.tcp_moderate_rcvbuf = 1
-net.core.rmem_default = 87380
-net.core.wmem_default = 65536
-net.core.rmem_max = 16777216
-net.core.wmem_max = 16777216
-net.ipv4.tcp_rmem = 4096 87380 16777216
-net.ipv4.tcp_wmem = 4096 65536 16777216
-EOF
-	if sysctl -p && sysctl --system; then
+	if write_tcp_config 16777216; then
 		echo -e "${GREEN}TCP网络优化配置成功应用！${NC}"
 	else
 		echo -e "${RED}TCP网络优化配置应用失败，请检查系统日志${NC}"
@@ -190,15 +204,26 @@ EOF
 	echo -e "${YELLOW}提示：某些应用可能需要重启才能生效${NC}"
 }
 
+write_icmp_config() {
+	local ignore_all=$1
+	local ignore_broadcasts=$2
+
+	install -d -m 0755 "$SYSCTL_DIR"
+	remove_sysctl_keys "$LEGACY_SYSCTL_CONFIG" \
+		net.ipv4.icmp_echo_ignore_all \
+		net.ipv4.icmp_echo_ignore_broadcasts
+
+	cat > "$ICMP_SYSCTL_CONFIG" << EOF
+# 由network-optimize.sh管理
+net.ipv4.icmp_echo_ignore_all = ${ignore_all}
+net.ipv4.icmp_echo_ignore_broadcasts = ${ignore_broadcasts}
+EOF
+
+	sysctl -p "$ICMP_SYSCTL_CONFIG"
+}
 
 shield_icmp() {
-	sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
-	sed -i '/net.ipv4.icmp_echo_ignore_broadcasts/d' /etc/sysctl.conf
-	cat >> '/etc/sysctl.conf' << EOF
-net.ipv4.icmp_echo_ignore_all=1
-net.ipv4.icmp_echo_ignore_broadcasts=1
-EOF
-	if sysctl -p && sysctl --system; then
+	if write_icmp_config 1 1; then
 		echo -e "${GREEN}ICMP已成功屏蔽！${NC}"
 	else
 		echo -e "${RED}ICMP屏蔽失败，请检查系统日志${NC}"
@@ -206,20 +231,7 @@ EOF
 }
 
 open_icmp() {
-	# 检查是否存在相关配置，如果不存在则添加
-	if grep -q "net.ipv4.icmp_echo_ignore_all" /etc/sysctl.conf; then
-		sed -i "s/net.ipv4.icmp_echo_ignore_all=1/net.ipv4.icmp_echo_ignore_all=0/g" /etc/sysctl.conf
-	else
-		echo "net.ipv4.icmp_echo_ignore_all=0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q "net.ipv4.icmp_echo_ignore_broadcasts" /etc/sysctl.conf; then
-		sed -i "s/net.ipv4.icmp_echo_ignore_broadcasts=1/net.ipv4.icmp_echo_ignore_broadcasts=0/g" /etc/sysctl.conf
-	else
-		echo "net.ipv4.icmp_echo_ignore_broadcasts=0" >> /etc/sysctl.conf
-	fi
-	
-	if sysctl -p && sysctl --system; then
+	if write_icmp_config 0 0; then
 		echo -e "${GREEN}ICMP已成功开放！${NC}"
 	else
 		echo -e "${RED}ICMP开放失败，请检查系统日志${NC}"
